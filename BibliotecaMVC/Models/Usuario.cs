@@ -25,7 +25,7 @@ public abstract class Usuario
         CadastroAtivo = true;
     }
 
-    // construtor para RECONSTITUIÇÃO do objeto pelo banco
+    // construtor para reconstituição do objeto pelo banco
     protected Usuario(int id, string nome, string cpf, string email, string senhaHash, DateTime dataCadastro, bool cadastroAtivo)
     {
         ID = id;
