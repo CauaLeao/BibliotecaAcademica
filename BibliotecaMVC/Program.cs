@@ -1,6 +1,13 @@
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDistributedMemoryCache(); // guarda a sessão atual do usuário na RAM do servidor
+builder.Services.AddSession(options => // adidiona o mecanismo de sessão por usuário
+{
+   options.IdleTimeout = TimeSpan.FromMinutes(30); // desconecta usuários inativos por mais de 30 minutos
+   options.Cookie.HttpOnly = true; // impede códigos javascript maliciosos de lerem o cookie de sessão do usuário
+   options.Cookie.IsEssential = true; // torna o cookie obrigatório pro sistema rodar
+});
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -15,6 +22,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseSession(); // middleware que lê o cookie da sessão e grava as alterações no servidor
 
 app.UseAuthorization();
 
