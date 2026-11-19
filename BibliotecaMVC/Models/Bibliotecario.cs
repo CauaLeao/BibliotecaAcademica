@@ -30,6 +30,18 @@ public class Bibliotecario : Usuario
         Matricula = ValidarMatricula(matricula);
     }
     
+    //Implementação das regras de permissão para bibliotecario
+    public override bool PossuiPermissao(TipoOperacao operacao)
+    {
+        if (!CadastroAtivo)
+            return false;
+
+        if (!Enum.IsDefined(operacao))
+            return false;
+
+        return operacao != TipoOperacao.GerenciarBibliotecarios; // bibliotecário não pode gerenciar outros bibliotecários
+    }
+    
 
     private static string ValidarMatricula(string matricula)
     {
@@ -39,3 +51,4 @@ public class Bibliotecario : Usuario
         return matricula.Trim();
     }   
 }
+
