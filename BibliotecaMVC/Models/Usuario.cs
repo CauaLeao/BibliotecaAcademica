@@ -39,8 +39,11 @@ public abstract class Usuario
 
     public void AtualizarDados(string nome, string email)
     {
-        Nome = ValidarNome(nome);
-        Email = ValidarEmail(email);
+        var nomeValidado = ValidarNome(nome);
+        var emailValidado = ValidarEmail(email);
+
+        Nome = nomeValidado;
+        Email = emailValidado;
     }
     public void AlterarSenha(string novaSenhaHash)
     {

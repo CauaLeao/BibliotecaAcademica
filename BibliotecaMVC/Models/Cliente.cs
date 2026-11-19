@@ -33,8 +33,11 @@ public class Cliente : Usuario
 
     public void AtualizarVinculo(TipoCliente perfil, string registroInstitucional)
     {
-        Perfil = ValidarPerfil(perfil);
-        RegistroInstitucional = ValidarRegistroInstitucional(registroInstitucional);
+        var perfilValidado = ValidarPerfil(perfil);
+        var registroValidado = ValidarRegistroInstitucional(registroInstitucional);
+        
+        Perfil = perfilValidado;
+        RegistroInstitucional = registroValidado;
     }
 
     public override bool PossuiPermissao(TipoOperacao operacao)
@@ -71,7 +74,7 @@ public class Cliente : Usuario
         };
     }
 
-    //Verifica se o cliente está ativo e se possui permissão para realizar empréstimos
+    // Verifica se o enum TipoCliente digitado é válido
     private static TipoCliente ValidarPerfil(TipoCliente perfil)
     {
         if (!Enum.IsDefined(perfil))
