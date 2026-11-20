@@ -1,6 +1,5 @@
 ﻿using BibliotecaMVC.Enums;
 using BibliotecaMVC.Exceptions;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace BibliotecaMVC.Models;
 
@@ -29,14 +28,21 @@ public class  Livro
         Categoria.AdicionarLivro(this);// Registrando o livro na categoria associada
     }
 
-    // Construtor para hidratação via Dapper
-    internal static Livro Reconstituir(int id, string titulo, string isbn, string autor, string resumo, Categoria categoria)
-
+    // Construtor protegido para hidratação via Dapper
+    protected Livro(int id, string titulo, string isbn, string autor, string resumo, Categoria categoria)
     {
-        return new Livro(titulo, isbn, autor, resumo, categoria)
-        {
-            ID = id
-        };
+        ID = id;
+        Titulo = titulo;
+        ISBN = isbn;
+        Autor = autor;
+        Resumo = resumo;
+        Categoria = categoria;
+    }
+
+    // O método Reconstituir chama esse construtor protegido:
+    internal static Livro Reconstituir(int id, string titulo, string isbn, string autor, string resumo, Categoria categoria)
+    {
+        return new Livro(id, titulo, isbn, autor, resumo, categoria);
     }
 
     public void AtualizarDados(string titulo, string isbn, string autor, string resumo)

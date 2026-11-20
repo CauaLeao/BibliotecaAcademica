@@ -28,14 +28,21 @@ public class Exemplar
     }
 
 
-    // Reconstituição para o Dapper
+    // Reconstituição protegida para o Dapper
+    protected Exemplar(int id, Livro livro, string codigo, EstadoConservacao estadoConservacao, DateTime dataAquisicao, DisponibilidadeExemplar disponibilidade)
+    {
+        ID = id;
+        Livro = livro;
+        Codigo = codigo;
+        EstadoConservacao = estadoConservacao;
+        DataAquisicao = dataAquisicao;
+        Disponibilidade = disponibilidade;
+    }
+
+    // O método Reconstituir chama esse construtor protegido:
     internal static Exemplar Reconstituir(int id, Livro livro, string codigo, EstadoConservacao estadoConservacao, DateTime dataAquisicao, DisponibilidadeExemplar disponibilidade)
     {
-        return new Exemplar(livro, codigo, estadoConservacao, dataAquisicao)
-        {
-            ID = id,
-            Disponibilidade = disponibilidade
-        };
+        return new Exemplar(id, livro, codigo, estadoConservacao, dataAquisicao, disponibilidade);
     }
 
 

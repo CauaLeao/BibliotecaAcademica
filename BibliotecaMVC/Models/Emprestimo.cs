@@ -43,16 +43,24 @@ public class Emprestimo
     }
 
 
-    // Reconstituição do Dapper sem disparar regras de novo empréstimo
+    // Construtor (sobrecarga) protegido para hidratação pura do banco, evita erros de lógica de negócio ao reconstituir o objeto.
+    protected Emprestimo(int id, Usuario usuario, Exemplar exemplar, DateTime dataRetirada, DateTime dataDevolucaoPrevista, DateTime? dataDevolucaoEfetiva, int prazoDias, bool renovado)
+    {
+        ID = id;
+        Usuario = usuario;
+        Exemplar = exemplar;
+        DataRetirada = dataRetirada;
+        DataDevolucaoPrevista = dataDevolucaoPrevista;
+        DataDevolucaoEfetiva = dataDevolucaoEfetiva;
+        PrazoDias = prazoDias;
+        Renovado = renovado;
+    }
+
+
+    // O método Reconstituir chama esse construtor protegido:
     internal static Emprestimo Reconstituir(int id, Usuario usuario, Exemplar exemplar, DateTime dataRetirada, DateTime dataDevolucaoPrevista, DateTime? dataDevolucaoEfetiva, int prazoDias, bool renovado)
     {
-        return new Emprestimo(usuario, exemplar, dataRetirada, prazoDias)
-        {
-            ID = id,
-            DataDevolucaoPrevista = dataDevolucaoPrevista,
-            DataDevolucaoEfetiva = dataDevolucaoEfetiva,
-            Renovado = renovado
-        };
+        return new Emprestimo(id, usuario, exemplar, dataRetirada, dataDevolucaoPrevista, dataDevolucaoEfetiva, prazoDias, renovado);
     }
 
 

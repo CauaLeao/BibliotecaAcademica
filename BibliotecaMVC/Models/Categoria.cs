@@ -14,21 +14,26 @@ public class Categoria
     public IReadOnlyCollection<Livro> Livros => _livros.AsReadOnly();
 
     // Agora o contrutor para as novas categorias
-    public Categoria(String nome, string descricao)
+    public Categoria(string nome, string descricao)
     {
         Nome = ValidarTexto(nome, "O nome da categoria é obrigatório");
         Descricao = ValidarTexto(descricao, "A descrição da categoria é obrigatória");
 
     }
 
-    // Um construtor para a reconstituição do objeto no Dapper
+    // Um construtor para a reconstituição do objeto no Dapper, protegido para a hidratação do banco de dados.
 
+    protected Categoria(int id, string nome, string descricao)
+    {
+        ID = id;
+        Nome = nome;
+        Descricao = descricao;
+    }
+
+    // O método Reconstituir chama esse construtor protegido:
     internal static Categoria Reconstituir(int id, string nome, string descricao)
     {
-        return new Categoria(nome, descricao)
-        {
-            ID = id
-        };
+        return new Categoria(id, nome, descricao);
     }
 
     //Criando alterar nome e descrição separados, para que seja possível alterar apenas um dos campos, sem precisar passar os dois.
@@ -63,7 +68,7 @@ public class Categoria
             _livros.Remove(livro);
     }
 
-    public static string ValidarTexto(string texto, string mensagemErro)
+    private static string ValidarTexto(string texto, string mensagemErro)
     {
         if (string.IsNullOrWhiteSpace(texto))
             throw new RegraNegocioException(mensagemErro); // se não tiver nada, exibe mensagem de erro
