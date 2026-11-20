@@ -1,8 +1,9 @@
-﻿using System;
+﻿namespace BibliotecaMVC.Enums;
 
-public class Class1
+// Auxiliador para calcular com base no tempo de aquisição do exemplar (Novo < 2 anos, velho Velho >= 2 anos por exemplo)
+
+public enum  ClassificacaoTemporal
 {
-	public Class1()
-	{
-	}
+    Novo =  1,
+    Velho = 2
 }

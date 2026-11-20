@@ -1,8 +1,10 @@
-﻿using System;
+﻿namespace BibliotecaMVC.Enums;
 
-public class Class1
+// Representa o status de circulação do exemplar, usado para determinar se o exemplar está disponível para empréstimo ou não.
+
+public enum  DisponibilidadeExemplar
 {
-	public Class1()
-	{
-	}
+    Disponivel =  1,
+    Emprestado = 2,
+    Indisponivel = 3
 }

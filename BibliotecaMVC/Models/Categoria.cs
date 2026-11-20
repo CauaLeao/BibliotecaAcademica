@@ -1,8 +1,73 @@
-﻿using System;
+﻿using BibliotecaMVC.Exceptions;
 
-public class Class1
+namespace BibliotecaMVC.Models;
+
+public class Categoria
 {
-	public Class1()
-	{
-	}
+    public int ID { get; private set; }
+    public string Nome { get; private set; }
+    public string Descricao { get; private set; }
+
+    // Lista privada com encapsulamento para evitar que a lista seja manipulada fora da classe
+
+    private readonly List<Livro> _livros = new();
+    public IReadOnlyCollection<Livro> Livros => _livros.AsReadOnly();
+
+    // Agora o contrutor para as novas categorias
+    public Categoria(String nome, string descricao)
+    {
+        Nome = ValidarTexto(nome, "O nome da categoria é obrigatório");
+        Descricao = ValidarTexto(descricao, "A descrição da categoria é obrigatória");
+
+    }
+
+    // Um construtor para a reconstituição do objeto no Dapper
+
+    internal static Categoria Reconstituir(int id, string nome, string descricao)
+    {
+        return new Categoria(nome, descricao)
+        {
+            ID = id
+        };
+    }
+
+    //Criando alterar nome e descrição separados, para que seja possível alterar apenas um dos campos, sem precisar passar os dois.
+    public void AlterarNome(string nome)
+    {
+        var nomeValidado = ValidarTexto(nome, "O nome da categoria é obrigatório.");
+        
+        Nome = nomeValidado;
+    }
+    public void AlterarDescricao(string descricao)
+    {
+        var descricaoValidada = ValidarTexto(descricao, "A descrição da categoria é obrigatória.");
+       
+        Descricao = descricaoValidada;
+    }
+
+    // Métodos de adicionar e remover livros da categoria.
+
+    internal void AdicionarLivro(Livro livro)
+    {
+        if (livro == null)
+            throw new RegraNegocioException("Livro inválido.");
+
+        if (!_livros.Contains(livro))
+            _livros.Add(livro);
+    }
+
+    internal void RemoverLivro(Livro livro)
+    {
+
+        if (_livros.Contains(livro))
+            _livros.Remove(livro);
+    }
+
+    public static string ValidarTexto(string texto, string mensagemErro)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+            throw new RegraNegocioException(mensagemErro); // se não tiver nada, exibe mensagem de erro
+
+        return texto.Trim();
+    }
 }
