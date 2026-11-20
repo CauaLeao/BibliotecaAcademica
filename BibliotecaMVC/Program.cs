@@ -1,3 +1,5 @@
+using BibliotecaMVC.Database;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +13,9 @@ builder.Services.AddSession(options => // adidiona o mecanismo de sessão por us
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+var connectionString = app.Configuration.GetConnectionString("DefaultConnection")!;
+var caminhoScript = Path.Combine(app.Environment.ContentRootPath, "Database", "script.sql");
+DbInitializer.Inicializar(connectionString, caminhoScript);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
