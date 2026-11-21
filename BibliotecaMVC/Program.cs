@@ -1,4 +1,6 @@
 using BibliotecaMVC.Database;
+using BibliotecaMVC.Repositories.Dapper;
+using BibliotecaMVC.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,13 @@ builder.Services.AddSession(options => // adidiona o mecanismo de sessão por us
    options.Cookie.IsEssential = true; // torna o cookie obrigatório pro sistema rodar
 });
 builder.Services.AddControllersWithViews();
+
+// Repositórios (Injeção de Dependência)
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<ILivroRepository, LivroRepository>();
+builder.Services.AddScoped<IExemplarRepository, ExemplarRepository>();
+builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 
 var app = builder.Build();
 var connectionString = app.Configuration.GetConnectionString("DefaultConnection")!; // lê o banco de dados bibliotech.db
