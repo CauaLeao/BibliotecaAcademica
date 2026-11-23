@@ -1,0 +1,127 @@
+@model BibliotecaMVC.ViewModels.UsuarioDetalhesViewModel
+@using BibliotecaMVC.Enums
+@using BibliotecaMVC.Models
+
+@{
+    ViewData["Title"] = "Detalhes do Usuário";
+    var u = Model.Usuario;
+    var hoje = DateTime.Today;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">@u.Nome</h2>
+    <div class="d-flex gap-2">
+        @if (u is not Administrador)
+        {
+            <a asp-action="Edit" asp-route-id="@u.ID" class="btn btn-primary">Editar</a>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">CPF</dt>
+            <dd class="col-sm-9">@u.CPF</dd>
+
+            <dt class="col-sm-3">E-mail</dt>
+            <dd class="col-sm-9">@u.Email</dd>
+
+            <dt class="col-sm-3">Data de Cadastro</dt>
+            <dd class="col-sm-9">@u.DataCadastro.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @if (u.CadastroAtivo)
+                {
+                    <span class="badge bg-success">Ativo</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inativo</span>
+                }
+            </dd>
+
+            @if (u is Cliente cli)
+            {
+                <dt class="col-sm-3">Perfil</dt>
+                <dd class="col-sm-9">Cliente — @cli.Perfil (limite: @cli.ObterLimiteEmprestimos() exemplares / prazo: @cli.ObterPrazoEmprestimo() dias)</dd>
+
+                <dt class="col-sm-3">RA / Registro Institucional</dt>
+                <dd class="col-sm-9">@cli.RegistroInstitucional</dd>
+            }
+            else if (u is Administrador adm)
+            {
+                <dt class="col-sm-3">Tipo</dt>
+                <dd class="col-sm-9">Administrador</dd>
+
+                <dt class="col-sm-3">Matrícula</dt>
+                <dd class="col-sm-9">@adm.Matricula</dd>
+            }
+            else if (u is Bibliotecario bib)
+            {
+                <dt class="col-sm-3">Tipo</dt>
+                <dd class="col-sm-9">Bibliotecário</dd>
+
+                <dt class="col-sm-3">Matrícula</dt>
+                <dd class="col-sm-9">@bib.Matricula</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<h4 class="mb-3">Histórico de Empréstimos</h4>
+
+@if (!Model.Emprestimos.Any())
+{
+    <div class="alert alert-info">Este usuário ainda não possui empréstimos registrados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Livro</th>
+                    <th>Exemplar</th>
+                    <th>Retirada</th>
+                    <th>Prevista</th>
+                    <th>Devolução</th>
+                    <th>Situação</th>
+                    <th>Multa</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in Model.Emprestimos)
+                {
+                    var atrasado = emp.EstaAtrasado(hoje);
+                    var multa = emp.CalcularMulta(hoje);
+
+                    <tr>
+                        <td>@emp.Exemplar.Livro.Titulo</td>
+                        <td><code>@emp.Exemplar.Codigo</code></td>
+                        <td>@emp.DataRetirada.ToString("dd/MM/yyyy")</td>
+                        <td>@emp.DataDevolucaoPrevista.ToString("dd/MM/yyyy")</td>
+                        <td>@(emp.DataDevolucaoEfetiva?.ToString("dd/MM/yyyy") ?? "-")</td>
+                        <td>
+                            @if (emp.Situacao == SituacaoEmprestimo.Ativo)
+                            {
+                                <span class="badge bg-primary">Ativo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Encerrado</span>
+                            }
+                            @if (atrasado)
+                            {
+                                <span class="badge bg-danger ms-1">Atrasado</span>
+                            }
+                        </td>
+                        <td>@multa.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IExemplarRepository, ExemplarRepository>();
 builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 // Serviços de Domínio e Aplicação
 builder.Services.AddScoped<BibliotecaMVC.Services.AuthService>();
+builder.Services.AddScoped<BibliotecaMVC.Services.UsuarioService>();
 
 var app = builder.Build();
 var connectionString = app.Configuration.GetConnectionString("DefaultConnection")!; // lê o banco de dados bibliotech.db

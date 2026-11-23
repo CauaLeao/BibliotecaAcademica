@@ -1,0 +1,107 @@
+@model BibliotecaMVC.ViewModels.UsuarioCriarViewModel
+@using BibliotecaMVC.Enums
+
+@{
+    ViewData["Title"] = "Novo Usuário";
+}
+
+<h2 class="mb-3">Cadastrar Usuário</h2>
+
+<div class="row">
+    <div class="col-md-7">
+        <form asp-action="Create" method="post" class="card card-body shadow-sm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            @if (Model.PodeCriarBibliotecario)
+            {
+                <div class="mb-3">
+                    <label asp-for="TipoUsuario" class="form-label"></label>
+                    <select asp-for="TipoUsuario" class="form-select" id="selectTipoUsuario">
+                        <option value="@TipoUsuario.Cliente">Cliente (Aluno / Funcionário / Professor)</option>
+                        <option value="@TipoUsuario.Bibliotecario">Bibliotecário</option>
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="TipoUsuario" value="@TipoUsuario.Cliente" />
+            }
+
+            <div class="mb-3">
+                <label asp-for="Nome" class="form-label"></label>
+                <input asp-for="Nome" class="form-control" />
+                <span asp-validation-for="Nome" class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CPF" class="form-label"></label>
+                    <input asp-for="CPF" class="form-control" placeholder="Somente números (11 dígitos)" />
+                    <span asp-validation-for="CPF" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Senha" class="form-label"></label>
+                <input asp-for="Senha" class="form-control" />
+                <span asp-validation-for="Senha" class="text-danger small"></span>
+            </div>
+
+            <div id="camposCliente">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Perfil" class="form-label"></label>
+                        <select asp-for="Perfil" asp-items="Html.GetEnumSelectList<TipoCliente>()" class="form-select"></select>
+                        <span asp-validation-for="Perfil" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="RegistroInstitucional" class="form-label"></label>
+                        <input asp-for="RegistroInstitucional" class="form-control" placeholder="RA ou matrícula institucional" />
+                        <span asp-validation-for="RegistroInstitucional" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="camposBibliotecario" class="d-none">
+                <div class="mb-3">
+                    <label asp-for="Matricula" class="form-label"></label>
+                    <input asp-for="Matricula" class="form-control" placeholder="Ex.: BIB002" />
+                    <span asp-validation-for="Matricula" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const selectTipo = document.getElementById("selectTipoUsuario");
+            const camposCliente = document.getElementById("camposCliente");
+            const camposBib = document.getElementById("camposBibliotecario");
+
+            function atualizarCampos() {
+                if (!selectTipo) return;
+                const ehBibliotecario = selectTipo.value === "@TipoUsuario.Bibliotecario" || selectTipo.value === "@((int)TipoUsuario.Bibliotecario)";
+                camposCliente.classList.toggle("d-none", ehBibliotecario);
+                camposBib.classList.toggle("d-none", !ehBibliotecario);
+            }
+
+            if (selectTipo) {
+                selectTipo.addEventListener("change", atualizarCampos);
+                atualizarCampos();
+            }
+        })();
+    </script>
+}
