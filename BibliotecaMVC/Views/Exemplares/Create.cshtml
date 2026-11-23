@@ -1,0 +1,48 @@
+@model BibliotecaMVC.ViewModels.ExemplarFormViewModel
+@using BibliotecaMVC.Enums
+
+@{
+    ViewData["Title"] = "Novo Exemplar";
+}
+
+<h2 class="mb-1">Cadastrar Exemplar</h2>
+<p class="text-muted mb-3">Livro: <strong>@Model.LivroTitulo</strong></p>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post" class="card card-body shadow-sm">
+            <input type="hidden" asp-for="LivroID" />
+            <input type="hidden" asp-for="LivroTitulo" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Codigo" class="form-label"></label>
+                <input asp-for="Codigo" class="form-control" placeholder="Ex.: EX-001" />
+                <span asp-validation-for="Codigo" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="EstadoConservacao" class="form-label"></label>
+                <select asp-for="EstadoConservacao" asp-items="Html.GetEnumSelectList<EstadoConservacao>()" class="form-select"></select>
+                <span asp-validation-for="EstadoConservacao" class="text-danger small"></span>
+                <div class="form-text">Exemplares cadastrados como <strong>Danificado</strong> iniciam automaticamente como Indisponíveis (RN11).</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DataAquisicao" class="form-label"></label>
+                <input asp-for="DataAquisicao" type="date" class="form-control" />
+                <span asp-validation-for="DataAquisicao" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a asp-controller="Livros" asp-action="Details" asp-route-id="@Model.LivroID" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

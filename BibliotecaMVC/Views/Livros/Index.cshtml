@@ -1,0 +1,124 @@
+@model BibliotecaMVC.ViewModels.LivroCatalogoViewModel
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "Catálogo de Livros";
+    var tipoUsuario = Context.Session.GetString("TipoUsuario");
+    var isGestor = tipoUsuario == "Bibliotecario" || tipoUsuario == "Administrador";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Catálogo de Livros</h2>
+    @if (isGestor)
+    {
+        <a asp-action="Create" class="btn btn-primary">+ Novo Livro</a>
+    }
+</div>
+
+<form asp-action="Index" method="get" class="card card-body shadow-sm mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="termo" class="form-label small text-muted">Pesquisar (título, autor ou ISBN)</label>
+            <input type="text" id="termo" name="termo" value="@Model.Termo" class="form-control" placeholder="Ex.: Clean Code, Machado..." />
+        </div>
+
+        <div class="col-md-3">
+            <label for="categoriaId" class="form-label small text-muted">Categoria</label>
+            <select id="categoriaId" name="categoriaId" class="form-select">
+                <option value="">Todas as categorias</option>
+                @foreach (var cat in Model.Categorias)
+                {
+                    <option value="@cat.ID" selected="@(Model.CategoriaId == cat.ID)">@cat.Nome</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label for="disponibilidade" class="form-label small text-muted">Disponibilidade</label>
+            <select id="disponibilidade" name="disponibilidade" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Model.Disponibilidade))">Todos</option>
+                <option value="disponiveis" selected="@(Model.Disponibilidade == "disponiveis")">Com disponíveis</option>
+                <option value="indisponiveis" selected="@(Model.Disponibilidade == "indisponiveis")">Sem disponíveis</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label for="ordenacao" class="form-label small text-muted">Ordenar por</label>
+            <select id="ordenacao" name="ordenacao" class="form-select">
+                <option value="titulo_asc" selected="@(Model.Ordenacao == "titulo_asc")">Título (A → Z)</option>
+                <option value="titulo_desc" selected="@(Model.Ordenacao == "titulo_desc")">Título (Z → A)</option>
+                <option value="autor_asc" selected="@(Model.Ordenacao == "autor_asc")">Autor (A → Z)</option>
+            </select>
+        </div>
+
+        <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Itens.Any())
+{
+    <div class="alert alert-info">Nenhum livro encontrado com os filtros informados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Categoria</th>
+                    <th>ISBN</th>
+                    <th>Disponibilidade</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Itens)
+                {
+                    var livro = item.Livro;
+                    <tr>
+                        <td class="fw-semibold">@livro.Titulo</td>
+                        <td>@livro.Autor</td>
+                        <td><span class="badge bg-light text-dark border">@livro.Categoria.Nome</span></td>
+                        <td><code>@livro.ISBN</code></td>
+                        <td>
+                            @if (item.TotalExemplares == 0)
+                            {
+                                <span class="badge bg-secondary">Sem exemplares</span>
+                            }
+                            else if (item.ExemplaresDisponiveis > 0)
+                            {
+                                <span class="badge bg-success">@item.ExemplaresDisponiveis / @item.TotalExemplares disponível(is)</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">0 / @item.TotalExemplares disponível</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Details" asp-route-id="@livro.ID" class="btn btn-sm btn-outline-info">
+                                Detalhes
+                            </a>
+
+                            @if (isGestor)
+                            {
+                                <a asp-action="Edit" asp-route-id="@livro.ID" class="btn btn-sm btn-outline-primary">
+                                    Editar
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@livro.ID" method="post" class="d-inline"
+                                      onsubmit="return confirm('Tem certeza que deseja excluir este livro?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Excluir
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

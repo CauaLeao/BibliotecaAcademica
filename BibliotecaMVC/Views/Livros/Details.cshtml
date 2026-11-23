@@ -1,0 +1,142 @@
+@model BibliotecaMVC.ViewModels.LivroDetalhesViewModel
+@using BibliotecaMVC.Enums
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = Model.Livro.Titulo;
+    var livro = Model.Livro;
+    var hoje = DateTime.Today;
+    var tipoUsuario = Context.Session.GetString("TipoUsuario");
+    var isGestor = tipoUsuario == "Bibliotecario" || tipoUsuario == "Administrador";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">@livro.Titulo</h2>
+    <div class="d-flex gap-2">
+        @if (isGestor)
+        {
+            <a asp-action="Edit" asp-route-id="@livro.ID" class="btn btn-primary">Editar Livro</a>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar ao Catálogo</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-2">Autor</dt>
+            <dd class="col-sm-10">@livro.Autor</dd>
+
+            <dt class="col-sm-2">Categoria</dt>
+            <dd class="col-sm-10"><span class="badge bg-light text-dark border">@livro.Categoria.Nome</span></dd>
+
+            <dt class="col-sm-2">ISBN</dt>
+            <dd class="col-sm-10"><code>@livro.ISBN</code></dd>
+
+            <dt class="col-sm-2">Resumo</dt>
+            <dd class="col-sm-10 mb-0">@livro.Resumo</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Exemplares (@Model.Exemplares.Count())</h4>
+    @if (isGestor)
+    {
+        <a asp-controller="Exemplares" asp-action="Create" asp-route-livroId="@livro.ID" class="btn btn-sm btn-success">
+            + Novo Exemplar
+        </a>
+    }
+</div>
+
+@if (!Model.Exemplares.Any())
+{
+    <div class="alert alert-info">Nenhum exemplar físico cadastrado para este livro.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Conservação</th>
+                    <th>Aquisição</th>
+                    <th>Classificação Temporal</th>
+                    <th>Disponibilidade</th>
+                    @if (isGestor)
+                    {
+                        <th class="text-end">Ações</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ex in Model.Exemplares)
+                {
+                    var tempoBadge = ex.DataAquisicao <= hoje
+                        ? ex.ClassificarPorTempo(hoje)
+                        : ClassificacaoTemporal.Novo;
+
+                    var dispBadgeClass = ex.Disponibilidade switch
+                    {
+                        DisponibilidadeExemplar.Disponivel => "bg-success",
+                        DisponibilidadeExemplar.Emprestado => "bg-primary",
+                        _ => "bg-secondary"
+                    };
+
+                    var consBadgeClass = ex.EstadoConservacao switch
+                    {
+                        EstadoConservacao.Novo => "bg-success",
+                        EstadoConservacao.Bom => "bg-info text-dark",
+                        EstadoConservacao.Regular => "bg-warning text-dark",
+                        _ => "bg-danger"
+                    };
+
+                    <tr>
+                        <td><code class="fw-semibold">@ex.Codigo</code></td>
+                        <td><span class="badge @consBadgeClass">@ex.EstadoConservacao</span></td>
+                        <td>@ex.DataAquisicao.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @(tempoBadge == ClassificacaoTemporal.Novo ? "bg-outline-success border text-success" : "bg-light text-dark border")">
+                                @tempoBadge
+                            </span>
+                        </td>
+                        <td><span class="badge @dispBadgeClass">@ex.Disponibilidade</span></td>
+
+                        @if (isGestor)
+                        {
+                            <td class="text-end text-nowrap">
+                                <a asp-controller="Exemplares" asp-action="Edit" asp-route-id="@ex.ID"
+                                   class="btn btn-sm btn-outline-primary">Editar</a>
+
+                                @if (ex.Disponibilidade == DisponibilidadeExemplar.Disponivel)
+                                {
+                                    <form asp-controller="Exemplares" asp-action="TornarIndisponivel"
+                                          asp-route-id="@ex.ID" asp-route-livroId="@livro.ID" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">Indisponibilizar</button>
+                                    </form>
+                                }
+                                else if (ex.Disponibilidade == DisponibilidadeExemplar.Indisponivel && ex.EstadoConservacao != EstadoConservacao.Danificado)
+                                {
+                                    <form asp-controller="Exemplares" asp-action="Disponibilizar"
+                                          asp-route-id="@ex.ID" asp-route-livroId="@livro.ID" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Disponibilizar</button>
+                                    </form>
+                                }
+
+                                @if (ex.Disponibilidade != DisponibilidadeExemplar.Emprestado)
+                                {
+                                    <form asp-controller="Exemplares" asp-action="Delete"
+                                          asp-route-id="@ex.ID" asp-route-livroId="@livro.ID" method="post" class="d-inline"
+                                          onsubmit="return confirm('Tem certeza que deseja excluir este exemplar?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                                    </form>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
