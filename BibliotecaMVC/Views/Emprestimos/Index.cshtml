@@ -1,79 +1,124 @@
-@model IEnumerable<BibliotecaMVC.Models.Emprestimo>
+@model BibliotecaMVC.ViewModels.EmprestimoListagemViewModel
 @{
     ViewData["Title"] = "Gerenciamento de Empréstimos";
+    var temFiltro = !string.IsNullOrEmpty(Model.Situacao) || !string.IsNullOrEmpty(Model.Prazo);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-journal-text"></i> Gerenciamento de Empréstimos (Bibliotech)</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="bi bi-journal-text"></i> Gerenciamento de Empréstimos (Bibliotech)</h2>
+    <a asp-action="Create" class="btn btn-primary">+ Novo Empréstimo</a>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Leitor</th>
-                        <th>Livro</th>
-                        <th>Exemplar</th>
-                        <th>Retirada</th>
-                        <th>Previsão</th>
-                        <th>Situação</th>
-                        <th>Multa</th>
-                        <th class="text-end">Registrar Devolução</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var emp in Model)
-                    {
-                        var atrasado = emp.EstaAtrasado(DateTime.Now);
-                        var multa = emp.CalcularMulta(DateTime.Now);
-                        <tr>
-                            <td>#@emp.ID</td>
-                            <td><strong>@emp.Usuario.Nome</strong></td>
-                            <td>@emp.Exemplar.Livro.Titulo</td>
-                            <td><code>@emp.Exemplar.Codigo</code></td>
-                            <td>@emp.DataRetirada.ToString("dd/MM/yyyy")</td>
-                            <td class="@(atrasado && emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo ? "text-danger fw-bold" : "")">
-                                @emp.DataDevolucaoPrevista.ToString("dd/MM/yyyy")
-                            </td>
-                            <td>
-                                @if (emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo)
-                                {
-                                    <span class="badge @(atrasado ? "bg-danger" : "bg-primary")">
-                                        @(atrasado ? "Atrasado" : "Ativo")
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Devolvido</span>
-                                }
-                            </td>
-                            <td>
-                                <strong class="@(multa > 0 ? "text-danger" : "text-muted")">
-                                    @multa.ToString("C")
-                                </strong>
-                            </td>
-                            <td class="text-end">
-                                @if (emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo)
-                                {
-                                    <form asp-action="Devolver" method="post" class="d-inline-flex gap-2 justify-content-end">
-                                        <input type="hidden" name="id" value="@emp.ID" />
-                                        <select name="estadoConservacao" class="form-select form-select-sm" style="width: 120px;">
-                                            <option value="1">Novo</option>
-                                            <option value="2" selected>Bom</option>
-                                            <option value="3">Regular</option>
-                                            <option value="4">Danificado</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Devolver</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+<form asp-action="Index" method="get" class="card card-body shadow-sm mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="situacao" class="form-label small text-muted">Situação</label>
+            <select id="situacao" name="situacao" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Model.Situacao))">Todos</option>
+                <option value="ativos" selected="@(Model.Situacao == "ativos")">Ativos</option>
+                <option value="encerrados" selected="@(Model.Situacao == "encerrados")">Encerrados</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label for="prazo" class="form-label small text-muted">Prazo</label>
+            <select id="prazo" name="prazo" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Model.Prazo))">Todos</option>
+                <option value="no_prazo" selected="@(Model.Prazo == "no_prazo")">No prazo</option>
+                <option value="atrasados" selected="@(Model.Prazo == "atrasados")">Atrasados</option>
+            </select>
+        </div>
+
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+            @if (temFiltro)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpar</a>
+            }
         </div>
     </div>
-</div>
+</form>
+
+@if (!Model.Emprestimos.Any())
+{
+    <div class="alert alert-info">Nenhum empréstimo encontrado com os filtros informados.</div>
+}
+else
+{
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Leitor</th>
+                            <th>Livro</th>
+                            <th>Exemplar</th>
+                            <th>Retirada</th>
+                            <th>Previsão</th>
+                            <th>Situação</th>
+                            <th>Multa</th>
+                            <th class="text-end">Registrar Devolução</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var emp in Model.Emprestimos)
+                        {
+                            var atrasado = emp.EstaAtrasado(DateTime.Now);
+                            var multa = emp.CalcularMulta(DateTime.Now);
+                            <tr>
+                                <td>#@emp.ID</td>
+                                <td><strong>@emp.Usuario.Nome</strong></td>
+                                <td>@emp.Exemplar.Livro.Titulo</td>
+                                <td><code>@emp.Exemplar.Codigo</code></td>
+                                <td>@emp.DataRetirada.ToString("dd/MM/yyyy")</td>
+                                <td class="@(atrasado && emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo ? "text-danger fw-bold" : "")">
+                                    @emp.DataDevolucaoPrevista.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>
+                                    @if (emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo)
+                                    {
+                                        <span class="badge @(atrasado ? "bg-danger" : "bg-primary")">
+                                            @(atrasado ? "Atrasado" : "Ativo")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge @(atrasado ? "bg-warning text-dark" : "bg-secondary")">
+                                            @(atrasado ? "Encerrado (com atraso)" : "Encerrado")
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <strong class="@(multa > 0 ? "text-danger" : "text-muted")">
+                                        @multa.ToString("C")
+                                    </strong>
+                                </td>
+                                <td class="text-end">
+                                    @if (emp.Situacao == BibliotecaMVC.Enums.SituacaoEmprestimo.Ativo)
+                                    {
+                                        <form asp-action="Devolver" method="post" class="d-inline-flex gap-2 justify-content-end">
+                                            <input type="hidden" name="id" value="@emp.ID" />
+                                            <select name="estadoConservacao" class="form-select form-select-sm" style="width: 120px;">
+                                                <option value="1">Novo</option>
+                                                <option value="2" selected>Bom</option>
+                                                <option value="3">Regular</option>
+                                                <option value="4">Danificado</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Devolver</button>
+                                        </form>
+                                    }
+                                    else if (emp.DataDevolucaoEfetiva.HasValue)
+                                    {
+                                        <small class="text-muted">Devolvido em @emp.DataDevolucaoEfetiva.Value.ToString("dd/MM/yyyy")</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

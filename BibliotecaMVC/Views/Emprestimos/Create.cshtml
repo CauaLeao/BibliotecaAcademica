@@ -1,0 +1,64 @@
+@model BibliotecaMVC.ViewModels.EmprestimoFormViewModel
+
+@{
+    ViewData["Title"] = "Registrar Empréstimo";
+    var temUsuarios = Model.Usuarios.Any();
+    var temExemplares = Model.Exemplares.Any();
+}
+
+<h2 class="mb-3">Registrar Empréstimo</h2>
+
+<div class="row">
+    <div class="col-md-7">
+        @if (!temUsuarios)
+        {
+            <div class="alert alert-warning">
+                Não há usuários ativos cadastrados para realizar empréstimos.
+            </div>
+        }
+        else if (!temExemplares)
+        {
+            <div class="alert alert-warning">
+                Não há exemplares disponíveis no acervo no momento.
+            </div>
+        }
+
+        <form asp-action="Create" method="post" class="card card-body shadow-sm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="UsuarioID" class="form-label"></label>
+                <select asp-for="UsuarioID" asp-items="Model.Usuarios" class="form-select">
+                    <option value="">-- Selecione o usuário --</option>
+                </select>
+                <span asp-validation-for="UsuarioID" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ExemplarID" class="form-label"></label>
+                <select asp-for="ExemplarID" asp-items="Model.Exemplares" class="form-select">
+                    <option value="">-- Selecione o exemplar disponível --</option>
+                </select>
+                <span asp-validation-for="ExemplarID" class="text-danger small"></span>
+            </div>
+
+            <div class="alert alert-light border small text-muted mb-3">
+                <strong>Regras de prazo e limite:</strong><br />
+                Aluno: até 3 exemplares (7 dias) &bull;
+                Funcionário / Bibliotecário / Administrador: até 3 exemplares (10 dias) &bull;
+                Professor: até 5 exemplares (14 dias).
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" disabled="@(!temUsuarios || !temExemplares)">
+                    Confirmar Empréstimo
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

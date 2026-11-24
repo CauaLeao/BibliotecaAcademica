@@ -2,6 +2,7 @@
 using BibliotecaMVC.Exceptions;
 using BibliotecaMVC.Models;
 using BibliotecaMVC.Repositories.Interfaces;
+using BibliotecaMVC.ViewModels;
 
 namespace BibliotecaMVC.Services;
 
@@ -23,6 +24,55 @@ public class EmprestimoService
 
     public async Task<IEnumerable<Emprestimo>> ListarTodosAsync()
         => await _emprestimoRepository.ObterTodosAsync();
+
+    public async Task<EmprestimoListagemViewModel> ListarFiltradosAsync(string? situacao, string? prazo)
+    {
+        var todos = await _emprestimoRepository.ObterTodosAsync();
+        var referencia = DateTime.Now;
+
+        var filtrados = todos;
+
+        // Filtro por situação (RF16: ativos e encerrados)
+        filtrados = situacao switch
+        {
+            "ativos" => filtrados.Where(e => e.Situacao == SituacaoEmprestimo.Ativo),
+            "encerrados" => filtrados.Where(e => e.Situacao == SituacaoEmprestimo.Encerrado),
+            _ => filtrados
+        };
+
+        // Filtro por prazo (RF17: no prazo e atrasados)
+        filtrados = prazo switch
+        {
+            "no_prazo" => filtrados.Where(e => !e.EstaAtrasado(referencia)),
+            "atrasados" => filtrados.Where(e => e.EstaAtrasado(referencia)),
+            _ => filtrados
+        };
+
+        return new EmprestimoListagemViewModel
+        {
+            Situacao = situacao,
+            Prazo = prazo,
+            Emprestimos = filtrados.ToList()
+        };
+    }
+
+    public async Task<IEnumerable<Usuario>> ListarUsuariosAtivosAsync()
+    {
+        var usuarios = await _usuarioRepository.ObterTodosAsync();
+        return usuarios
+            .Where(u => u.CadastroAtivo)
+            .OrderBy(u => u.Nome, StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    public async Task<IEnumerable<Exemplar>> ListarExemplaresDisponiveisAsync()
+    {
+        var exemplares = await _exemplarRepository.ObterTodosAsync();
+        return exemplares
+            .Where(e => e.Disponibilidade == DisponibilidadeExemplar.Disponivel
+                     && e.EstadoConservacao != EstadoConservacao.Danificado)
+            .OrderBy(e => e.Livro.Titulo, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(e => e.Codigo, StringComparer.CurrentCultureIgnoreCase);
+    }
 
     public async Task<IEnumerable<Emprestimo>> ListarPorUsuarioAsync(int usuarioId)
         => await _emprestimoRepository.ObterPorUsuarioIdAsync(usuarioId);

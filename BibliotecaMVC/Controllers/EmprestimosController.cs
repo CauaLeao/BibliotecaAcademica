@@ -1,25 +1,52 @@
 ﻿using BibliotecaMVC.Enums;
 using BibliotecaMVC.Exceptions;
 using BibliotecaMVC.Filters;
+using BibliotecaMVC.Models;
 using BibliotecaMVC.Services;
+using BibliotecaMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BibliotecaMVC.Controllers;
 
 public class EmprestimosController : Controller
 {
     private readonly EmprestimoService _emprestimoService;
-    private readonly LivroService _livroService;
-    private readonly UsuarioService _usuarioService;
 
-    public EmprestimosController(
-        EmprestimoService emprestimoService,
-        LivroService livroService,
-        UsuarioService usuarioService)
+    public EmprestimosController(EmprestimoService emprestimoService)
     {
         _emprestimoService = emprestimoService;
-        _livroService = livroService;
-        _usuarioService = usuarioService;
+    }
+
+    private async Task CarregarListasFormularioAsync(EmprestimoFormViewModel model)
+    {
+        var usuarios = await _emprestimoService.ListarUsuariosAtivosAsync();
+        var exemplares = await _emprestimoService.ListarExemplaresDisponiveisAsync();
+
+        model.Usuarios = usuarios.Select(u =>
+        {
+            var descricaoPerfil = u switch
+            {
+                Cliente c => $"{c.Perfil} - {c.ObterPrazoEmprestimo()} dias",
+                Administrador => "Administrador - 10 dias",
+                Bibliotecario => "Bibliotecário - 10 dias",
+                _ => "Usuário"
+            };
+
+            return new SelectListItem
+            {
+                Value = u.ID.ToString(),
+                Text = $"{u.Nome} ({descricaoPerfil})",
+                Selected = model.UsuarioID == u.ID
+            };
+        });
+
+        model.Exemplares = exemplares.Select(e => new SelectListItem
+        {
+            Value = e.ID.ToString(),
+            Text = $"{e.Codigo} — {e.Livro.Titulo} ({e.EstadoConservacao})",
+            Selected = model.ExemplarID == e.ID
+        });
     }
 
     // Visão do Leitor: Seus próprios empréstimos
@@ -28,17 +55,56 @@ public class EmprestimosController : Controller
     public async Task<IActionResult> Meus()
     {
         var usuarioId = HttpContext.Session.GetInt32("UsuarioId")!.Value;
-        var emprestimos = await _emprestimoService.ListarPorUsuarioAsync(usuarioId); // Lista todos os empréstimos do usuário logado (ativos e devolvidos)
-        return View(emprestimos);
+        var emprestimos = await _emprestimoService.ListarPorUsuarioAsync(usuarioId);
+        return View("Usuario", emprestimos);
     }
 
-    // Visão do Gestor: Todos os empréstimos 
+    // Visão do Gestor: Todos os empréstimos com filtros por situação (RF16) e prazo (RF17)
     [HttpGet]
     [AutorizarOperacao(TipoOperacao.ConsultarTodosEmprestimos)]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? situacao, string? prazo)
     {
-        var emprestimos = await _emprestimoService.ListarTodosAsync(); // Lista todos os empréstimos do sistema (ativos e devolvidos)
-        return View(emprestimos);
+        var model = await _emprestimoService.ListarFiltradosAsync(situacao, prazo);
+        return View(model);
+    }
+
+    // Registro de novo empréstimo (RF13 - Apenas Bibliotecário / Admin)
+    [HttpGet]
+    [AutorizarOperacao(TipoOperacao.RegistrarEmprestimo)]
+    public async Task<IActionResult> Create(int? exemplarId = null)
+    {
+        var model = new EmprestimoFormViewModel
+        {
+            ExemplarID = exemplarId ?? 0
+        };
+
+        await CarregarListasFormularioAsync(model);
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [AutorizarOperacao(TipoOperacao.RegistrarEmprestimo)]
+    public async Task<IActionResult> Create(EmprestimoFormViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            await CarregarListasFormularioAsync(model);
+            return View(model);
+        }
+
+        try
+        {
+            await _emprestimoService.RegistrarEmprestimoAsync(model.UsuarioID, model.ExemplarID);
+            TempData["Sucesso"] = "Empréstimo registrado com sucesso!";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (RegraNegocioException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            await CarregarListasFormularioAsync(model);
+            return View(model);
+        }
     }
 
     // Renovar empréstimo
@@ -47,9 +113,20 @@ public class EmprestimosController : Controller
     [AutorizarOperacao(TipoOperacao.ConsultarPropriosEmprestimos)]
     public async Task<IActionResult> Renovar(int id)
     {
+        var usuarioId = HttpContext.Session.GetInt32("UsuarioId")!.Value;
+        var tipo = HttpContext.Session.GetString("TipoUsuario");
+        var isGestor = tipo == "Bibliotecario" || tipo == "Administrador";
+
         try
         {
-            await _emprestimoService.RenovarAsync(id); // Puxa o serviço de domínio para renovar o empréstimo
+            if (!isGestor)
+            {
+                var emprestimo = await _emprestimoService.ObterPorIdAsync(id);
+                if (emprestimo.Usuario.ID != usuarioId)
+                    return RedirectToAction("AcessoNegado", "Account");
+            }
+
+            await _emprestimoService.RenovarAsync(id);
             TempData["Sucesso"] = "Empréstimo renovado com sucesso!";
         }
         catch (RegraNegocioException ex)
@@ -57,8 +134,7 @@ public class EmprestimosController : Controller
             TempData["Erro"] = ex.Message;
         }
 
-        var tipo = HttpContext.Session.GetString("TipoUsuario");
-        return (tipo == "Bibliotecario" || tipo == "Administrador")
+        return isGestor
             ? RedirectToAction(nameof(Index))
             : RedirectToAction(nameof(Meus));
     }
@@ -66,12 +142,12 @@ public class EmprestimosController : Controller
     // Devolução de exemplar (Apenas Bibliotecário / Admin)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AutorizarOperacao(TipoOperacao.RegistrarDevolucao)] // Bloqueia o acesso de usuários que não possuem permissão para registrar devoluções
+    [AutorizarOperacao(TipoOperacao.RegistrarDevolucao)]
     public async Task<IActionResult> Devolver(int id, EstadoConservacao estadoConservacao)
     {
         try
         {
-            await _emprestimoService.RegistrarDevolucaoAsync(id, estadoConservacao); // Puxa o serviço de domínio para registrar a devolução do exemplar
+            await _emprestimoService.RegistrarDevolucaoAsync(id, estadoConservacao);
             TempData["Sucesso"] = "Devolução registrada e exemplar atualizado com sucesso!";
         }
         catch (RegraNegocioException ex)

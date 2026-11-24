@@ -57,18 +57,18 @@ CREATE TABLE IF NOT EXISTS Emprestimos (
 -- 1. USUÁRIOS 
 -- Senha de todos: 123456
 INSERT OR IGNORE INTO Usuarios -- inserção de usuários fictícios no banco para fins de teste
-(Nome, CPF, Email, SenhaHash, DataCadastro, CadastroAtivo, TipoUsuario, Matricula, Perfil, RegistroInstitucional)
+(ID, Nome, CPF, Email, SenhaHash, DataCadastro, CadastroAtivo, TipoUsuario, Matricula, Perfil, RegistroInstitucional)
 VALUES
-('admin', '11111111111', 'admin@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 3, 'ADM001', NULL, NULL),
-('Bibliotecson', '22222222222', 'bibliotecario@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 2, 'BIB001', NULL, NULL),
-('Alunilson', '33333333333', 'aluno@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 1, '3333333333333'),
-('Funcionelson', '44444444444', 'funcionario@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 2, '4444444444444'),
-('Profersson', '55555555555', 'professor@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 3, '5555555555555'),
-('Desativaluno', '66666666666', 'desativado@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 0, 1, NULL, 1, '6666666666666');
-('Mariana Leitora', '77777777777', 'mariana@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-01 10:00:00', 1, 1, NULL, 1, '7777777777777'),
-('Carlos Leitor', '88888888888', 'carlos@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-05 11:30:00', 1, 1, NULL, 2, '8888888888888'),
-('Fernanda Bibliotecaria', '99999999999', 'fernanda@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-10 08:00:00', 1, 2, 'BIB002', NULL, NULL),
-('Roberto Admin', '10101010101', 'roberto@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-15 09:00:00', 1, 3, 'ADM002', NULL, NULL);
+(1, 'admin', '11111111111', 'admin@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 3, 'ADM001', NULL, NULL),
+(2, 'Bibliotecson', '22222222222', 'bibliotecario@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 2, 'BIB001', NULL, NULL),
+(3, 'Alunilson', '33333333333', 'aluno@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 1, '3333333333333'),
+(4, 'Funcionelson', '44444444444', 'funcionario@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 2, '4444444444444'),
+(5, 'Profersson', '55555555555', 'professor@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 1, 1, NULL, 3, '5555555555555'),
+(6, 'Desativaluno', '66666666666', 'desativado@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-01-10 08:00:00', 0, 1, NULL, 1, '6666666666666'),
+(7, 'Mariana Leitora', '77777777777', 'mariana@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-01 10:00:00', 1, 1, NULL, 1, '7777777777777'),
+(8, 'Carlos Leitor', '88888888888', 'carlos@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-05 11:30:00', 1, 1, NULL, 2, '8888888888888'),
+(9, 'Fernanda Bibliotecaria', '99999999999', 'fernanda@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-10 08:00:00', 1, 2, 'BIB002', NULL, NULL),
+(10, 'Roberto Admin', '10101010101', 'roberto@teste.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '2026-02-15 09:00:00', 1, 3, 'ADM002', NULL, NULL);
 
 
 -- 2. CATEGORIAS
