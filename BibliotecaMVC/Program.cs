@@ -26,6 +26,7 @@ builder.Services.AddScoped<BibliotecaMVC.Services.UsuarioService>();
 builder.Services.AddScoped<BibliotecaMVC.Services.CategoriaService>();
 builder.Services.AddScoped<BibliotecaMVC.Services.LivroService>();
 builder.Services.AddScoped<BibliotecaMVC.Services.ExemplarService>();
+builder.Services.AddScoped<BibliotecaMVC.Services.EmprestimoService>();
 
 var app = builder.Build();
 var connectionString = app.Configuration.GetConnectionString("DefaultConnection")!; // lê o banco de dados bibliotech.db

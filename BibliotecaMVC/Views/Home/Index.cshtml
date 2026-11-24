@@ -1,8 +1,115 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Microsoft.AspNetCore.Http
+
+
+@{
+    ViewData["Title"] = "Início";
+    var usuarioId = Context.Session.GetInt32("UsuarioId");
+    var usuarioNome = Context.Session.GetString("UsuarioNome");
+    var tipoUsuario = Context.Session.GetString("TipoUsuario");
+    var isGestor = tipoUsuario == "Bibliotecario" || tipoUsuario == "Administrador";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm border">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-book-half"></i> Bem-vindo à Bibliotech
+        </h1>
+        <p class="col-md-9 fs-5 text-muted">
+            O seu sistema completo de consulta de acervo, controle de exemplares e gestão de empréstimos.
+        </p>
+        
+        @if (!usuarioId.HasValue)
+        {
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg px-4 me-2" asp-controller="Account" asp-action="Login">
+                    Acessar Conta
+                </a>
+                <span class="text-muted">Entre para consultar o acervo e acompanhar seus empréstimos.</span>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info d-inline-block py-2 px-4 mt-2">
+                Logado como: <strong>@usuarioNome</strong> <span class="badge bg-primary ms-1">@tipoUsuario</span>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-4 py-2">
+    <!-- Card Catálogo de Livros -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 border-top border-primary border-3">
+            <div class="card-body p-4 text-center">
+                <div class="display-6 text-primary mb-3">📚</div>
+                <h4 class="card-title fw-bold">Catálogo de Livros</h4>
+                <p class="card-text text-muted">
+                    Explore nosso acervo completo, filtre por categoria, pesquise por autor ou título e verifique a disponibilidade.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+                @if (usuarioId.HasValue)
+                {
+                    <a asp-controller="Livros" asp-action="Index" class="btn btn-outline-primary px-4">Explorar Livros</a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary px-4">Fazer Login para Ver</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Empréstimos -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 border-top border-success border-3">
+            <div class="card-body p-4 text-center">
+                <div class="display-6 text-success mb-3">🔖</div>
+                <h4 class="card-title fw-bold">Meus Empréstimos</h4>
+                <p class="card-text text-muted">
+                    Acompanhe os prazos de devolução de seus livros emprestados, histórico de leituras e renove títulos com facilidade.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+                @if (usuarioId.HasValue)
+                {
+                    <a asp-controller="Emprestimos" asp-action="Meus" class="btn btn-outline-success px-4">Ver Meus Prazos</a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary px-4">Entrar na Conta</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Gestão / Regras -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 border-top border-warning border-3">
+            <div class="card-body p-4 text-center">
+                <div class="display-6 text-warning mb-3">⚙️</div>
+                <h4 class="card-title fw-bold">Gestão & Regras</h4>
+                <p class="card-text text-muted">
+                    @if (isGestor)
+                    {
+                        <span>Acesso ao painel administrativo de gestão de usuários, exemplares, categorias e circulação geral.</span>
+                    }
+                    else
+                    {
+                        <span>Multa diária de R$ 1,00 por dia de atraso. Prazos configurados por perfil de leitor e renovação online.</span>
+                    }
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+                @if (isGestor)
+                {
+                    <a asp-controller="Emprestimos" asp-action="Index" class="btn btn-warning px-4">Painel de Gestão</a>
+                }
+                else
+                {
+                    <span class="badge bg-light text-dark border p-2">Bibliotech v1.0</span>
+                }
+            </div>
+        </div>
+    </div>
 </div>
